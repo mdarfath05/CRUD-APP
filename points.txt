@@ -1,0 +1,369 @@
+npm init = for package.jason file
+
+npm i express mongoose express-session ejs multer dotenv
+
+npm i -D nodemon
+
+main.js
+.env      files
+
+to use nodemon in package.json >> script >> start :nodemon app.js
+
+Express:
+
+It’s a web framework for Node.js.
+Helps you build web servers and APIs easily.
+Example: It lets you handle requests like showing a webpage or saving data.
+
+Mongoose:
+
+It’s a tool for working with MongoDB in Node.js.
+Simplifies how you save and retrieve data from MongoDB.
+Example: You can define rules (schemas) for how your data should look.
+
+Express-Session:
+
+Used to manage user sessions in your app.
+Stores user data (like login status) temporarily during a session.
+Example: Helps keep a user logged in as they navigate your site.
+EJS (Embedded JavaScript Templates):
+
+A template engine for building dynamic HTML pages.
+Lets you insert data (like a user’s name) into HTML easily.
+Example: Show "Welcome, [username]!" on a webpage.
+
+Multer:
+
+A middleware for handling file uploads in Express apps.
+Helps process and save files (like images or documents) from users.
+Example: Allows users to upload a profile picture.
+
+Dotenv:
+
+A tool to manage sensitive configuration values.
+Stores things like API keys or database credentials in a .env file.
+Example: Keeps your app’s secret information safe and separate from the code.
+
+Cookies:
+
+Small files stored on a user’s browser by a website.
+Used to remember user info between visits.
+Example: Keeps you logged in or remembers items in your shopping cart.
+Key Features: Stored on the user’s computer and can be accessed by the browser for future requests.
+
+Sessions:
+
+Temporary data stored on the server to track users while they’re on the site.
+Linked to a user through a unique session ID (often stored in a cookie).
+Example: Helps keep you logged in as you move between pages on a site.
+Key Features: Data is stored on the server, making it more secure than cookies alone.
+
+
+The line require("dotenv").config(); is used in Node.js applications to load environment variables from a .env file into the process.env object. Here's what it does, step by step:
+
+Function:
+Require the dotenv library:
+
+The dotenv package is used to handle environment variables.
+Load the .env file:
+
+.env is a file where you store sensitive configuration like API keys, database credentials, etc.
+Set variables in process.env:
+
+The .env file’s contents are added to process.env, making them accessible throughout your application.
+
+
+
+The line const express = require("express"); is used in a Node.js application to include the Express library, which is a web framework for building web applications and APIs. 
+
+
+The line const app = express(); is used to create an Express application instance. This app instance is the core of an Express application and is used to configure and define the behavior of your web server.
+
+What It Does:
+Creates an Express app:
+
+The express() function initializes a new instance of an Express application.
+This app will handle requests, define routes, and manage middleware.
+Acts as the main object for your app:
+
+You use app to define routes (URLs your app responds to) and attach middleware.
+
+[CALL BACK function
+HTTP]
+
+port = 5000
+DB_URI = mongodb://localhost:27017/MYDB    //.env file me liknaso
+
+What is HTTP?
+HTTP (Hypertext Transfer Protocol) is the foundation of communication on the web. It allows web clients (like browsers) and servers to exchange data using requests and responses.
+
+Code Explanation //DATABASE CONNECTION//
+1. mongoose.connect(process.env.DB_URI, {...options}):
+Purpose: Connects your application to a MongoDB database using the Mongoose library.
+Details:
+process.env.DB_URI: Fetches the database connection string from the environment variables (via dotenv). This string specifies the location and credentials for the database.
+Options:
+useNewUrlParser: true: Ensures that Mongoose uses the MongoDB driver's new connection string parser.
+useUnifiedTopology: true: Opts in for the new server discovery and monitoring engine for better stability
+
+
+
+ //middlewares//
+ app.use(express.urlencoded({ extended: false }));
+ app.use(express.json());
+
+[[What It Does:
+These lines allow your server to handle incoming data from the client:
+
+express.urlencoded({ extended: false }):
+Parses form data (data sent in the format key=value).
+Makes it available in req.body for your routes.
+express.json():
+Parses incoming JSON data (e.g., from APIs or frontend).
+Also makes it available in req.body.
+Why It's Important:
+Without these, your server won’t understand the data sent in requests
+
+Without express.urlencoded() or express.json(), the server wouldn’t know how to handle the incoming data. You’d need to manually process the raw request data, which is complicated. These middlewares make it easy to work with data sent by clients.
+
+Summary
+req.body is like a container that holds all the data sent by the client.
+Middleware like express.urlencoded() or express.json() ensures that data is automatically processed and ready for use in your routes]]
+
+
+ app.use(
+    session({
+        secret:"my secret key",
+        saveUninitialized:true,
+        resave: false,
+    })
+ );
+
+[[What It Does:
+This sets up sessions, which allow your server to remember data about a user between requests.
+
+secret: "my secret key":
+A string used to sign the session ID for security.
+Keeps sessions safe from tampering.
+saveUninitialized: true:
+Even if the session has no data yet, it’s stored in the session store.
+resave: false:
+Prevents unnecessary saving of session data if it hasn’t changed.
+Why It's Important:
+Sessions are essential for features like login systems or tracking user actions during a visit.
+
+***[[No, the secret key (secret: "my secret key") is not the same as the session ID, and it is not assigned to users. Let me explain this step by step in simple terms.
+
+What Is the Secret Key?
+The secret key is a private string that your server uses internally.
+It is used to sign the session ID cookie that gets stored in the user's browser.
+This signature ensures that:
+The session ID has not been tampered with.
+Only the server can validate the session ID because it knows the secret key.
+How Does It Work?
+Session ID Creation:
+
+When a user visits your site for the first time, a unique session ID is generated for them (e.g., abc123xyz).
+This session ID is then signed with the secret key to create something like:
+Copy code
+abc123xyz.signature
+The signed session ID is stored as a cookie in the user's browser.
+When the User Makes Requests:
+
+The browser sends the signed session ID back to the server with each request.
+The server uses the secret key to verify the signature:
+If the signature matches the session ID, the server knows it is valid.
+If someone has tampered with the session ID (e.g., tried to change it), the signature won't match, and the session will be rejected.
+Is the Secret Key Same for All Users?
+Yes, the secret key is the same for all users, but it is only used internally on the server to sign and verify session IDs.
+
+***}}
+
+app.use((req,res,next) => {
+    res.locals.message = req.session.message;
+    delete req.session.message;
+    next();
+ });
+
+[[What It Does:
+This is a custom middleware for handling flash messages (temporary messages displayed to the user, like "Login successful" or "Error occurred").
+
+req.session.message:
+Stores the message in the session.
+res.locals.message:
+Makes the message available to your views/templates (e.g., for showing a message on the web page).
+delete req.session.message:
+Deletes the message from the session after it’s used, so it doesn’t show up repeatedly.
+Why It's Important:
+Flash messages let you give feedback to users after actions (like form submissions).]]
+
+// setting template//
+
+app.set("view engine","ejs");
+
+The line app.set("view engine", "ejs"); is used in an Express application to set EJS (Embedded JavaScript) as the templating engine for rendering views.
+
+What It Does:
+Defines the View Engine:
+
+Tells Express to use EJS for rendering HTML templates dynamically.
+Renders Dynamic HTML:
+
+Allows you to insert JavaScript, variables, and logic directly into your HTML files to create dynamic pages.
+Locates Templates Automatically:
+
+By default, Express looks for templates in a folder named views.
+
+//models//
+is for user schema
+
+{{This code defines a Mongoose schema for a MongoDB database. It's like creating a blueprint for how user data will be stored. Let me explain each part step-by-step:
+
+1. Import Mongoose
+javascript
+Copy code
+const mongoose = require("mongoose");
+Mongoose is a library that helps you interact with a MongoDB database using JavaScript.
+It simplifies how we define and manage the structure of data.
+2. Define a Schema
+javascript
+Copy code
+const userSchema = new mongoose.Schema({...});
+A schema is a structure that defines the shape of data for a specific collection (e.g., "users").
+In this case, you're creating a schema for "users."
+3. Schema Fields
+Inside the schema, you're defining the fields (attributes) each user document will have:
+
+a) name
+javascript
+Copy code
+name: {
+    type: string,
+    required: true,
+}
+The user must have a name.
+type: string means it will be stored as text.
+required: true means it's mandatory.
+
+Export the Model
+javascript
+Copy code
+module.exports = mongoose.model('users', userSchema);
+This creates a model named 'users' based on the userSchema.
+The model allows you to interact with the MongoDB database (e.g., add, find, or delete user records).}}
+
+//route//
+This code creates an Express route to handle GET requests to /users. When accessed, it sends the response "ALL Users".
+
+
+
+
+
+
+You said:
+.Router() is function in express framework ?
+ChatGPT said:
+ChatGPT
+Yes, .Router() is a function in the Express framework.
+
+It creates a modular router instance that you can use to define routes separately from your main application. This helps organize routes in smaller, manageable files. Once defined, you can attach the router to your main app using app.use().
+
+
+
+//route prefix
+ app.use("",require("./routes/routes")); // ye b ek middle wear main.js file me 
+When this is used, a request to /users in the main app will trigger the /users route from routes.js.
+
+ye replace karko main file me tu server restart karya to error [cnnot get/] atai kiku kato tu [get] router s replce karyaso ni use baad tu URL me upper/users dalnaso
+ 
+phir wo replace karko [/users] abb khali ["/"] aur abb wo home page
+
+
+//.ejs//
+[[  <%= title %>
+jo b tu ejs file me lik ko hai wo render karne app.render(file name:inde  .ejs ny diya to b chaltai , baad wo file me se ek name de like hame ya title deko hai usse kya tabi assign kar jaisa hame ye home karko assign kari)
+
+router.get("/",(req,res) => {
+    res.render("index",{title: "Home Page"});
+  });
+
+ cdnjs.com from here we can all cdn front end libraries...
+
+ 
+cdnjs (short for Content Delivery Network JavaScript) is a free and open-source content delivery network (CDN) that hosts popular libraries such as JavaScript, CSS, fonts, and other assets. It allows developers to include these resources in their projects directly from the CDN instead of hosting them locally.
+
+ index.js
+   split karna footer.ejs me b header.ejs me
+   index.ejs file dekle 
+]]
+
+//router.get("/add",(req,res) => {
+    res.render("add_users",{title: "Add Users"})
+  })
+
+  add_users ka ek file banana usme index.js me jo content hai wo copy paste kar lena aur khali ek change karnaso h1 tag meye index.js file full ikmportant
+//
+
+[[
+    in form /add route is there no that is used for post method ..that is different from /add route that is used in get method for add users page.
+    entype one tag is there useed for adding images not only that but multiple type of  Data
+ ]]
+
+
+//
+Multer
+
+[[
+
+You said:
+
+  var storage = multer.diskStorage({
+    destination: function(req,file,cb){
+      cb(null,'./uploads')
+    },
+    filename: function(req,file,cb){
+      cb(null,file.fieldname + "_" + Date.now() + "_" + file.originalname);
+    },
+  });
+ChatGPT said:
+ChatGPT
+This snippet configures the storage engine for handling file uploads using multer, a middleware for handling multipart/form-data, primarily used for file uploads in Node.js applications.
+
+Code Breakdown:
+var storage = multer.diskStorage({...})
+
+This initializes the diskStorage engine for multer. Files will be stored on the server's filesystem.
+destination: function(req, file, cb)
+
+Specifies the folder where uploaded files will be stored.
+The callback cb is called with two arguments:
+null as the first argument to indicate no errors.
+'./uploads' as the folder path where files will be saved.
+filename: function(req, file, cb)
+
+Defines the name under which the uploaded file will be stored.
+Combines:
+file.fieldname: The name of the input field in the form.
+Date.now(): A timestamp to ensure the filename is unique.
+file.originalname: The original name of the uploaded file.
+This approach ensures that uploaded files do not overwrite each other, even if they have the same name.
+
+The provided snippet configures multer to handle file uploads for a single file under the field name "image" [ye HTML file me hai ]. Here's an explanation:
+
+Code Breakdown:
+var upload = multer({...})
+
+Initializes a multer middleware instance with the specified configuration.
+storage: storage
+
+Specifies the storage engine for multer.
+In this case, it uses the storage object configured earlier (from your previous code), which saves files to the ./uploads directory and assigns them a unique filename.
+.single("image")
+
+Indicates that this multer instance will handle a single file upload for the form field named "image".
+The uploaded file's details will be available in req.file.
+
+]]
+
+[[user added succesfully message= ejs file code]]
+
